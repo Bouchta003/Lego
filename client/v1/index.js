@@ -50,20 +50,38 @@ console.log(deals.length)
 // 1. Create a variable and assign it the list of shopping community name only
 // 2. Log the variable
 // 3. Log how many shopping communities we have
+const distinctCommunities = new Set();
+for (let deal of deals) {
+    distinctCommunities.add(deal.community);
+}
+distinctCommunities.size
 
 // 🎯 TODO 4: Sort by price
 // 1. Create a function to sort the deals by price
 // 2. Create a variable and assign it the list of sets by price from lowest to highest
 // 3. Log the variable
 
+function sortdealsprice(deals) {
+  return deals.sort((a, b) => a.price - b.price);
+}
+
+const sorteddeals = sortdealsprice(deals);
+console.log(sorteddeals);
+
 // 🎯 TODO 5: Sort by date
 // 1. Create a function to sort the deals by date
 // 2. Create a variable and assign it the list of deals by date from recent to old
 // 3. Log the variable
+function sortdate(deals) {
+  return deals.sort((b, a) => new Date(a.published) - new Date(b.published));
+}
+const sorteddealsdate = sortdate(deals);
+console.table(sorteddealsdate);
 
 // 🎯 TODO 6: Filter a specific percentage discount range
 // 1. Filter the list of deals between 50% and 75%
 // 2. Log the list
+
 
 // 🎯 TODO 7: Average percentage discount
 // 1. Determine the average percentage discount of the deals
