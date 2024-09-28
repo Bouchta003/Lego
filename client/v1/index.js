@@ -122,14 +122,38 @@ console.log("Average discount : "+avg+"%");
 //
 // 2. Log the variable
 // 3. Log the number of deals by community
+// 1. Create an object called 'communities' to group deals by community
+console.log("TODO 8: Deals by community");
+const communities = deals.reduce((acc, deal) => {
+  if (!acc[deal.community]) {
+      acc[deal.community] = [];
+  }
+  acc[deal.community].push(deal);
+  return acc;
+}, {});
+
+console.log(communities);
+Object.keys(communities).forEach(community => {
+  console.log(`${community}: ${communities[community].length} deals`);
+});
 
 // 🎯 TODO 9: Sort by price for each community
 // 1. For each community, sort the deals by discount price, from highest to lowest
 // 2. Log the sort
+console.log("TODO 9: Sort by price for each community");
+Object.keys(communities).forEach(community => {
+  communities[community].sort((a, b) => b.price - a.price);
+});
+console.log(communities);//or console.table(communities);
 
 // 🎯 TODO 10: Sort by date for each community
 // 1. For each set, sort the deals by date, from old to recent
 // 2. Log the sort
+console.log("TODO 10: Sort by date for each community");
+Object.keys(communities).forEach(community => {
+  communities[community].sort((a, b) => new Date(a.published) - new Date(b.published));
+});
+console.log(communities);//or console.table(communities);
 
 
 /**
@@ -365,7 +389,7 @@ const VINTED = [
 // 1. Delete the item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913`
 // 2. Log the new list of items
 
-// 🎯 TODO 5: Save a favorite item
+// 🎯 TODO 15: Save a favorite item
 // We declare and assign a variable called `sealedCamera`
 let sealedCamera = {
   title: 'La caméra Hommage à Walt Disney lego set 43230',
