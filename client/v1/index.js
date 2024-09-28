@@ -88,17 +88,17 @@ console.table(sorteddealsdate);
 // 2. Log the list
 console.log("TODO 6: Filter a specific percentage discount range");
 const filteredDealsDiscounts = deals.filter(deal => deal.discount >= 50 && deal.discount <= 75);
-console.log(filteredDeals);
+console.log(filteredDealsDiscounts);
 
 // 🎯 TODO 7: Average percentage discount
 // 1. Determine the average percentage discount of the deals
 // 2. Log the average
 console.log("TODO 7: Average percentage discount");
-sum = 0
+var sum = 0
 for (let deal of deals) {
     sum+=deal.discount;
 }
-avg = sum/deals.length;
+var avg = sum/deals.length;
 console.log("Average discount : "+avg+"%");
 /**
  * 🏎
