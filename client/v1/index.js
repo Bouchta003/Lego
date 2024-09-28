@@ -29,6 +29,7 @@ console.log(MY_FAVORITE_DEALERS[0]);
 // 0. I have 2 favorite lego sets shopping communities stored in MY_FAVORITE_DEALERS variable
 // 1. Create a new variable and assign it the link of the lego set with the highest reduction I can find on these 2 websites
 // 2. Log the variable //
+console.log("TODO 1: The highest reduction")
 var liendiscount="https://www.dealabs.com/bons-plans/lego-star-wars-75396-lesquif-du-desert-et-la-fosse-du-sarlacc-2865807";
 console.log(liendiscount);
 /**
@@ -43,24 +44,27 @@ console.log(liendiscount);
 // 🎯 TODO 2: Number of deals
 // 1. Create a variable and assign it the number of deals
 // 2. Log the variable
+console.log("TODO 2: Number of deals")
 console.log(deals.length)
-//answer is 50
+
 
 // 🎯 TODO 3: Website name
 // 1. Create a variable and assign it the list of shopping community name only
 // 2. Log the variable
 // 3. Log how many shopping communities we have
+console.log("TODO 3: Website name")
 const distinctCommunities = new Set();
 for (let deal of deals) {
     distinctCommunities.add(deal.community);
 }
-distinctCommunities.size
+console.log("Number of shops :"+distinctCommunities.size);
+console.table(distinctCommunities);
 
 // 🎯 TODO 4: Sort by price
 // 1. Create a function to sort the deals by price
 // 2. Create a variable and assign it the list of sets by price from lowest to highest
 // 3. Log the variable
-
+console.log("TODO 4: Sort by price")
 function sortdealsprice(deals) {
   return deals.sort((a, b) => a.price - b.price);
 }
@@ -76,6 +80,7 @@ function sortdate(deals) {
   return deals.sort((b, a) => new Date(a.published) - new Date(b.published));
 }
 const sorteddealsdate = sortdate(deals);
+console.log("TODO 5: Sort by date")
 console.table(sorteddealsdate);
 
 // 🎯 TODO 6: Filter a specific percentage discount range
