@@ -93,7 +93,13 @@ console.log(filteredDeals);
 // 🎯 TODO 7: Average percentage discount
 // 1. Determine the average percentage discount of the deals
 // 2. Log the average
-
+console.log("TODO 7: Average percentage discount");
+sum = 0
+for (let deal of deals) {
+    sum+=deal.discount;
+}
+avg = sum/deals.length;
+console.log("Average discount : "+avg+"%");
 /**
  * 🏎
  * We are almost done with the `deals` variable
