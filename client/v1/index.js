@@ -476,3 +476,6 @@ console.log("The potential highest profitability for item 43230 is: €${profita
 // 🎯 LAST TODO: Save in localStorage
 // 1. Save MY_FAVORITE_DEALERS in the localStorage
 // 2. log the localStorage
+console.log("LAST TODO: Save in localStorage");
+localStorage.setItem('MY_FAVORITE_DEALERS', JSON.stringify(MY_FAVORITE_DEALERS));
+console.log('localStorage:', localStorage.getItem('MY_FAVORITE_DEALERS'));
