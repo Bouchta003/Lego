@@ -435,7 +435,7 @@ camera.favorite = true;
 
 // 1. Log `sealedCamera` and `camera` variables
 // 2. What do you notice?
-
+// Nothing much, camera seems to have an additionnal item but appart from thus they seem to be the same
 // we make (again) a new assignment again
 sealedCamera = {
   title: 'La caméra Hommage à Walt Disney lego set 43230',
@@ -446,7 +446,8 @@ sealedCamera = {
 };
 
 // 3. Update `camera` property with `favorite` to true WITHOUT changing sealedCamera properties
-
+camera = sealedCamera;
+camera.favorite = true;
 
 // 🎯 TODO 11: Compute the profitability
 // From a specific deal called `deal`
@@ -459,7 +460,11 @@ const deal = {
 
 // 1. Compute the potential highest profitability based on the VINTED items
 // 2. Log the value
-
+console.log("TODO 11: Compute the profitability");
+const relevantVintedItems = VINTED.filter(item => item.title.includes("43230"));
+const highestPriceOnVinted = Math.max(...relevantVintedItems.map(item => item.price));
+const profitability = highestPriceOnVinted - deal.price;
+console.log("The potential highest profitability for item 43230 is: €${profitability.toFixed(2)}");
 
 
 /**
