@@ -28,6 +28,7 @@ let currentPagination = {};
 // instantiate the selectors
 const selectShow = document.querySelector('#show-select');
 const selectPage = document.querySelector('#page-select');
+const selectSort = document.querySelector('#sort-select');
 const textFilters = document.querySelectorAll('#filters span');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
@@ -157,7 +158,30 @@ selectPage.addEventListener('change', async (event) => {
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
 });
-
+//parseInt(event.target.value)
+function sortdealspriceASC(deals) {
+  return deals.sort((a, b) => a.price - b.price);
+}
+function sortdealspriceDESC(deals) {
+  return deals.sort((a, b) => b.price - a.price);
+}
+selectSort.addEventListener('change', async (event) => {
+  const deals = await fetchDeals(selectPage.value, selectShow.value);
+  setCurrentDeals(deals);
+  switch(selectSort.value){
+    case("price-asc"):
+      console.log("price-asc");
+      sortdealspriceASC(deals.result);
+      break;
+    case("price-desc"):
+      console.log("price-desc");
+      sortdealspriceDESC(deals.result);
+      break;
+    default:
+      console.log("default");
+  }
+  render(currentDeals, currentPagination);
+});
 textFilters.forEach((span) => {
   span.addEventListener("click", async (event) => {
     const deals = await fetchDeals(selectPage.value, selectShow.value);
