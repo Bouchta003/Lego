@@ -145,7 +145,7 @@ const render = (deals, pagination) => {
  * Select the number of deals to display
  */
 selectShow.addEventListener('change', async (event) => {
-  const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
+  const deals = await fetchDeals(selectPage.value, parseInt(event.target.value));
 
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
@@ -153,6 +153,13 @@ selectShow.addEventListener('change', async (event) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
+
+  setCurrentDeals(deals);
+  render(currentDeals, currentPagination);
+});
+
+selectPage.addEventListener('change', async (event) => {
+  const deals = await fetchDeals(parseInt(event.target.value), selectShow.value);
 
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
