@@ -28,6 +28,7 @@ let currentPagination = {};
 // instantiate the selectors
 const selectShow = document.querySelector('#show-select');
 const selectPage = document.querySelector('#page-select');
+const textFilters = document.querySelectorAll('#filters span');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
@@ -59,7 +60,6 @@ const fetchDeals = async (page = 1, size = 6) => {
       console.error(body);
       return {currentDeals, currentPagination};
     }
-
     return body.data;
   } catch (error) {
     console.error(error);
@@ -146,20 +146,41 @@ const render = (deals, pagination) => {
  */
 selectShow.addEventListener('change', async (event) => {
   const deals = await fetchDeals(selectPage.value, parseInt(event.target.value));
-
-  setCurrentDeals(deals);
-  render(currentDeals, currentPagination);
-});
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const deals = await fetchDeals();
-
+  console.log("number change");
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
 });
 
 selectPage.addEventListener('change', async (event) => {
   const deals = await fetchDeals(parseInt(event.target.value), selectShow.value);
+  console.log("page change");
+  setCurrentDeals(deals);
+  render(currentDeals, currentPagination);
+});
+
+textFilters.forEach((span) => {
+  span.addEventListener("click", async (event) => {
+    const deals = await fetchDeals(selectPage.value, selectShow.value);
+      switch(span.textContent.trim()){
+        case "By best discount":
+          deals.result = deals.result.filter(result => result.discount >= 50);
+          setCurrentDeals(deals);
+          render(currentDeals, currentPagination);
+          break;
+        case "By most commented":
+          deals.result = deals.result.filter(result => result.comments > 15);
+          setCurrentDeals(deals);
+          render(currentDeals, currentPagination);
+          break;
+        default:
+          console.log('other');
+      }
+  });
+});
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const deals = await fetchDeals();
 
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
