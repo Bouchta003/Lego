@@ -165,6 +165,13 @@ function sortdealspriceASC(deals) {
 function sortdealspriceDESC(deals) {
   return deals.sort((a, b) => b.price - a.price);
 }
+function sortdateASC(deals) {
+  return deals.sort((a, b) => new Date(a.published) - new Date(b.published));
+}
+function sortdateDESC(deals) {
+  return deals.sort((b, a) => new Date(a.published) - new Date(b.published));
+}
+
 selectSort.addEventListener('change', async (event) => {
   const deals = await fetchDeals(selectPage.value, selectShow.value);
   setCurrentDeals(deals);
@@ -176,6 +183,14 @@ selectSort.addEventListener('change', async (event) => {
     case("price-desc"):
       console.log("price-desc");
       sortdealspriceDESC(deals.result);
+      break;
+    case("date-asc"):
+      console.log("date-asc");
+      sortdateASC(deals.result);
+      break;
+    case("date-desc"):
+      console.log("date-desc");
+      sortdateDESC(deals.result);
       break;
     default:
       console.log("default");
@@ -210,7 +225,7 @@ textFilters.forEach((span) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
-
+  sortdealspriceASC(deals.result);
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
 });
