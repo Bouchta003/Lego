@@ -172,6 +172,11 @@ textFilters.forEach((span) => {
           setCurrentDeals(deals);
           render(currentDeals, currentPagination);
           break;
+        case "By hot deals":
+          deals.result = deals.result.filter(result => result.temperature > 100);
+          setCurrentDeals(deals);
+          render(currentDeals, currentPagination);
+          break;
         default:
           console.log('other');
       }
