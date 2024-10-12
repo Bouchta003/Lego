@@ -33,6 +33,7 @@ const textFilters = document.querySelectorAll('#filters span');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
+const salesCountElement = document.querySelector('#nbSales');
 
 /**
  * Set global value
@@ -177,8 +178,21 @@ function findDealByIdCommunity(selectedId, selectedCommunity) {
     console.log("No deal found for ID:", selectedId);
   }
 }
+const fetchSalesData = async (legoSetId) => {
+  try {
+    const response = await fetch(`https://lego-api-blue.vercel.app/sales?id=${legoSetId}`);
+    const data = await response.json();
+    
+    if (!response.ok || !data.success) {
+      throw new Error('Error fetching sales data');
+    }
 
-
+    return data.data.result || [];
+  } catch (error) {
+    console.error('Error fetching sales data:', error);
+    return []; 
+  }
+};
 selectLegoSetIds.addEventListener('change', async (event) => {
   const selectedId = event.target.value;
   const community = "dealabs";
@@ -187,6 +201,11 @@ selectLegoSetIds.addEventListener('change', async (event) => {
   deals.result = deals.result.filter(result => result.id == selectedId && result.community == community);
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
+});
+selectLegoSetIds.addEventListener('change', async (event) => {
+  const selectedId = event.target.value;
+  const salesData = await fetchSalesData(selectedId);
+  salesCountElement.textContent = salesData.length;
 });
 
 selectSort.addEventListener('change', async (event) => {
