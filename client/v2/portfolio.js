@@ -171,6 +171,23 @@ function sortdateASC(deals) {
 function sortdateDESC(deals) {
   return deals.sort((b, a) => new Date(a.published) - new Date(b.published));
 }
+function findDealByIdCommunity(selectedId, selectedCommunity) {
+  const result = currentDeals.find(deal => deal.id === selectedId && deal.community === selectedCommunity);
+  if (!result) {
+    console.log("No deal found for ID:", selectedId);
+  }
+}
+
+
+selectLegoSetIds.addEventListener('change', async (event) => {
+  const selectedId = event.target.value;
+  const community = "dealabs";
+  const deals = await fetchDeals(selectPage.value, selectShow.value);
+  findDealByIdCommunity(selectedId, community);
+  deals.result = deals.result.filter(result => result.id == selectedId && result.community == community);
+  setCurrentDeals(deals);
+  render(currentDeals, currentPagination);
+});
 
 selectSort.addEventListener('change', async (event) => {
   const deals = await fetchDeals(selectPage.value, selectShow.value);
