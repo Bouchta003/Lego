@@ -34,6 +34,9 @@ const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
 const salesCountElement = document.querySelector('#nbSales');
+const p5Element = document.getElementById('p5SalesPrice');
+const p25Element = document.getElementById('p25SalesPrice');
+const p50Element = document.getElementById('p50SalesPrice');
 
 /**
  * Set global value
@@ -178,6 +181,11 @@ function findDealByIdCommunity(selectedId, selectedCommunity) {
     console.log("No deal found for ID:", selectedId);
   }
 }
+const calculatePercentile = (prices, percentile) => {
+  if (prices.length === 0) return 0;
+  const index = Math.floor(percentile * prices.length);
+  return prices[index];
+};
 const fetchSalesData = async (legoSetId) => {
   try {
     const response = await fetch(`https://lego-api-blue.vercel.app/sales?id=${legoSetId}`);
@@ -206,6 +214,10 @@ selectLegoSetIds.addEventListener('change', async (event) => {
   const selectedId = event.target.value;
   const salesData = await fetchSalesData(selectedId);
   salesCountElement.textContent = salesData.length;
+  const prices = salesData.map(sale => parseFloat(sale.price)).sort((a, b) => a - b);
+  p5Element.textContent = calculatePercentile(prices, 0.05).toFixed(2);
+  p25Element.textContent = calculatePercentile(prices, 0.25).toFixed(2);
+  p50Element.textContent = calculatePercentile(prices, 0.50).toFixed(2);
 });
 
 selectSort.addEventListener('change', async (event) => {
