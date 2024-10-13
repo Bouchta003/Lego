@@ -201,6 +201,23 @@ const fetchSalesData = async (legoSetId) => {
     return []; 
   }
 };
+const calculateLifetimeInDays = (oldestTimestamp, newestTimestamp) => {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const timeDifferenceInMs = newestTimestamp - oldestTimestamp;
+  return Math.floor(timeDifferenceInMs / millisecondsPerDay);
+};
+const updateLifetimeValue = (salesData) => {
+  if (salesData.length === 0) {
+    document.getElementById('lifeTimeValue').textContent = "N/A";
+    return;
+  }
+  const publishedTimestamps = salesData.map(sale => sale.published);
+  const oldestTimestamp = Math.min(...publishedTimestamps);
+  const newestTimestamp = Math.max(...publishedTimestamps);
+  const lifetimeInDays = calculateLifetimeInDays(oldestTimestamp, newestTimestamp);
+  document.getElementById('lifeTimeValue').textContent = lifetimeInDays;
+};
+
 selectLegoSetIds.addEventListener('change', async (event) => {
   const selectedId = event.target.value;
   const community = "dealabs";
@@ -218,6 +235,7 @@ selectLegoSetIds.addEventListener('change', async (event) => {
   p5Element.textContent = calculatePercentile(prices, 0.05).toFixed(2);
   p25Element.textContent = calculatePercentile(prices, 0.25).toFixed(2);
   p50Element.textContent = calculatePercentile(prices, 0.50).toFixed(2);
+  updateLifetimeValue(salesData);
 });
 
 selectSort.addEventListener('change', async (event) => {
