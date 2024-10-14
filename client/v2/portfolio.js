@@ -84,7 +84,7 @@ const renderDeals = deals => {
       return `
       <div class="deal" id=${deal.uuid}>
         <span>${deal.id}</span>
-        <a href="${deal.link}">${deal.title}</a>
+        <a href="${deal.link}" target="_blank">${deal.title}</a> <!-- Added target="_blank" -->
         <span>${deal.price}</span>
       </div>
     `;
