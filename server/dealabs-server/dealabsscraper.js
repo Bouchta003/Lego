@@ -1,6 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const fs = require('fs');  // Import fs module for file writing
+const fs = require('fs');
 
 // Define the URL for Lego deals
 const URL = 'https://www.dealabs.com/search?q=Lego';
@@ -15,7 +15,7 @@ const URL = 'https://www.dealabs.com/search?q=Lego';
 
         // Array to hold scraped deals
         const deals = [];
-        
+
         // Log the number of threads found
         const threads = $('.thread');
         console.log(`Found ${threads.length} threads.`);
@@ -25,14 +25,16 @@ const URL = 'https://www.dealabs.com/search?q=Lego';
             const title = $(element).find('.thread-title').text().trim();
             console.log(`Title for thread ${index}:`, title); // Log title
 
-            // Search for any price (numeric value followed by €)
+            // Try matching any price values in the thread using regex
             const price = $(element).text().match(/\d+€/) ? $(element).text().match(/\d+€/)[0] : null;
-
-            console.log(`Price for thread ${index}:`, price); // Log price
-
-            // If price is found, store it in the deals array
+            const link = $(element).find('.thread-title a').attr('href');
+            console.log(`Link for thread ${index}:`, link); // Log link
+            // If a price is found, log it and store it in the deals array
             if (price) {
-                deals.push({ title, price });
+                console.log(`Price for thread ${index}:`, price); // Log price
+                deals.push({ title, price,link  });
+            } else {
+                console.log(`No price found for thread ${index}`);
             }
         });
 
