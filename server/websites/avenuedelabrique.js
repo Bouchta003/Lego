@@ -50,3 +50,10 @@ module.exports.scrape = async url => {
 
   return null;
 };
+
+/*When scraping the page, get the data as json
+Make sure that the Json data is clear and readable
+Same for Vinted
+Can we try to make the results into an HTML ?
+Write a basic HTML file thta would display the results (or maybe take the results from the chap 2 HTML)
+*/
