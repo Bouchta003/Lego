@@ -13,6 +13,7 @@
     "mongodb": "^6.9.0",
     "node-fetch": "^3.3.2",
     "parse-domain": "^8.2.2",
+    "puppeteer": "^23.9.0",
     "require-all": "^3.0.0",
     "uuid": "^10.0.0"
   },
