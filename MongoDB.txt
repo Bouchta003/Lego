@@ -1,2 +1,3 @@
 bouchtaben003
 NAaNgetpMgKyy5Y2
+mongodb+srv://bouchtaben003:<db_password>@cluster0.7dth8.mongodb.net/
