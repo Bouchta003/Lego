@@ -71,6 +71,9 @@ const getInput = (query) => {
                 const sizeElement = item.querySelector('[data-testid*="description-subtitle"]');
                 const size = sizeElement ? sizeElement.textContent.trim() : null;
 
+                const likeElement = item.querySelector('[data-testid*="favourite"] span');
+                const likes = likeElement ? parseInt(likeElement.textContent.trim()) : 0;
+
                 data.push({
                     ownerName,
                     ownerProfileLink,
@@ -78,7 +81,8 @@ const getInput = (query) => {
                     productLink,
                     price,
                     title,
-                    size
+                    size,
+                    likes
                 });
             });
 
@@ -88,7 +92,8 @@ const getInput = (query) => {
         // Save data to a file
         saveDataToFile(products, filename);
 
-        // Insert data into MongoDB
+        // Replace all existing data with the new scraped data
+        await collection.deleteMany({}); // Remove all existing documents
         const result = await collection.insertMany(products);
         console.log(`${result.insertedCount} records inserted into MongoDB`);
 
