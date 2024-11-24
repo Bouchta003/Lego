@@ -1,98 +1,97 @@
-const puppeteer = require('puppeteer');
-const fs = require('fs');
-const readline = require('readline');
+const MongoClient = require('mongodb').MongoClient;
 
-// Function to save data to a JSON file
-const saveDataToFile = (data, filename) => {
+// MDp à modifier pour plus de confidentialité
+const MONGODB_URI = 'mongodb+srv://bouchtaben003:xgwfWbIurQzptItf@cluster0.7dth8.mongodb.net/?retryWrites=true&writeConcern=majority';
+const MONGODB_DB_NAME = 'Lego';
+
+async function connectToDatabase() {
+    let client;
     try {
-        fs.writeFileSync(filename, JSON.stringify(data, null, 2));
-        console.log(`Data saved to ${filename}`);
+        // Removed deprecated options
+        client = await MongoClient.connect(MONGODB_URI);
+        const db = client.db(MONGODB_DB_NAME);
+        return { client, db };
     } catch (error) {
-        console.error(`Error saving data to file: ${error.message}`);
+        console.error('Error connecting to database:', error);
+        throw error;
     }
-};
+}
 
-// Function to prompt the user for input
-const getInput = (query) => {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-    return new Promise((resolve) => rl.question(query, (ans) => {
-        rl.close();
-        resolve(ans);
-    }));
-};
-
-(async () => {
-    // Get the ID from the user
-    const id = await getInput('Enter the ID to search: ');
-
-    // Construct the dynamic URL and filename
-    const url = `https://www.vinted.fr/catalog?search_text=${id}&time=1732213311&page=1`;
-    const filename = `scraped_data_${id}.json`;
-
-    // Launch Puppeteer
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
-
-    // Go to the Vinted URL
-    console.log(`Navigating to: ${url}`);
-    await page.goto(url, { waitUntil: 'networkidle2' });
-
+async function updateDealsWithNumericPrice() {
+    let client;
     try {
-        // Wait for product grid items to load
-        await page.waitForSelector('[data-testid="grid-item"]');
+        const { client: dbClient, db } = await connectToDatabase();
+        client = dbClient;
+        
+        const result = await db.collection('deals').updateMany(
+            {}, 
+            [
+                {
+                    $set: {
+                        numericPrice: {
+                            $toDouble: {
+                                $replaceAll: {
+                                    input: {
+                                        $replaceAll: {
+                                            input: {
+                                                $replaceAll: {
+                                                    input: "$price",
+                                                    find: "€", 
+                                                    replacement: ""
+                                                }
+                                            },
+                                            find: " ", 
+                                            replacement: ""
+                                        }
+                                    },
+                                    find: ",",  
+                                    replacement: "."  
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        );
 
-        // Scrape data
-        const products = await page.evaluate(() => {
-            // Select all product items
-            const items = document.querySelectorAll('[data-testid="grid-item"]');
-            const data = [];
-
-            items.forEach(item => {
-                const ownerElement = item.querySelector('[data-testid*="owner-name"]');
-                const ownerName = ownerElement ? ownerElement.textContent.trim() : null;
-
-                const ownerProfileElement = item.querySelector('[data-testid*="owner"] a');
-                const ownerProfileLink = ownerProfileElement ? ownerProfileElement.href : null;
-
-                const productImageElement = item.querySelector('[data-testid*="image--img"]');
-                const productImage = productImageElement ? productImageElement.src : null;
-
-                const productLinkElement = item.querySelector('[data-testid*="overlay-link"]');
-                const productLink = productLinkElement ? productLinkElement.href : null;
-
-                const priceElement = item.querySelector('[data-testid*="price-text"]');
-                const price = priceElement ? priceElement.textContent.trim() : null;
-
-                const titleElement = item.querySelector('[data-testid*="description-title"]');
-                const title = titleElement ? titleElement.textContent.trim() : null;
-
-                const sizeElement = item.querySelector('[data-testid*="description-subtitle"]');
-                const size = sizeElement ? sizeElement.textContent.trim() : null;
-
-                // Store the extracted data in an object
-                data.push({
-                    ownerName,
-                    ownerProfileLink,
-                    productImage,
-                    productLink,
-                    price,
-                    title,
-                    size
-                });
-            });
-
-            return data;
-        });
-
-        // Save the scraped data to a JSON file
-        saveDataToFile(products, filename);
+        console.log(`Modified ${result.modifiedCount} documents with numericPrice`);
     } catch (error) {
-        console.error(`Error during scraping: ${error.message}`);
+        console.error('Error updating deals with numeric price:', error);
     } finally {
-        // Close the browser
-        await browser.close();
+        if (client) {
+            client.close();
+        }
     }
-})();
+}
+
+async function findDealsSortedByPrice() {
+    let client;
+    try {
+        const { client: dbClient, db } = await connectToDatabase();
+        client = dbClient;
+        const deals = await db.collection('deals').aggregate([
+            {
+                $sort: { numericPrice: 1 } 
+            }
+        ]).toArray();
+
+        console.log('Deals Sorted By Numeric Price:', deals);
+    } catch (error) {
+        console.error('Error finding deals sorted by price:', error);
+    } finally {
+        if (client) {
+            client.close();
+        }
+    }
+}
+
+async function main() {
+    try {
+        await updateDealsWithNumericPrice();
+        await findDealsSortedByPrice();
+    } catch (error) {
+        console.error('Error in main function:', error);
+    }
+}
+
+main();
