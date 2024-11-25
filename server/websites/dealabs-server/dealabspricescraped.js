@@ -21,56 +21,31 @@ const URL = 'https://www.dealabs.com/search?q=21061';
         console.log(`Found ${threads.length} threads.`);
 
         threads.each((index, element) => {
-            // Get the title of the thread
+            // Extract the title
             const title = $(element).find('.thread-title').text().trim();
-            console.log(`Title for thread ${index}:`, title); // Log title
 
-            // Extract the price, original price, and discount percentage
-            const priceElement = $(element).find('.threadItemCard-price');
-            const price = priceElement.text().trim();
+            // Extract the price
+            const price = $(element).find('.threadItemCard-price').text().trim();
 
-            // Extract the original price if available
-            const originalPriceElement = $(element).find('.text--lineThrough');
-            const originalPrice = originalPriceElement.text().trim();
+            // Extract the discount (optional, may not exist for all items)
+            const discount = $(element).find('.thread-discount').text().trim() || "0%";
 
-            // Extract the discount percentage if available
-            const discountElement = $(element).find('.color--text-TranslucentPrimary');
-            const discount = discountElement.text().trim() || "0"; // Default to 0 if no discount found
-
-            // Get the link to the deal
-            const link = $(element).find('.thread-title a').attr('href');
-            console.log(`Link for thread ${index}:`, link); // Log link
-
-            // If a price is found, log the deal and add it to the array
-            if (price) {
-                console.log(`Price for thread ${index}:`, price); // Log price
-                console.log(`Original Price for thread ${index}:`, originalPrice); // Log original price
-                console.log(`Discount for thread ${index}:`, discount); // Log discount
-
-                // Push the deal to the deals array
-                deals.push({
-                    title,
-                    price,
-                    originalPrice,
-                    discount,
-                    link
-                });
+            // Push to the deals array if the price exists
+            if (title && price) {
+                deals.push({ title, price, discount });
+                console.log(`Scraped Deal #${index + 1}:`, { title, price, discount });
             } else {
-                console.log(`No price found for thread ${index}`);
+                console.log(`Skipping thread #${index + 1}: Missing title or price.`);
             }
         });
 
-        // Check the data in the array before writing to JSON
-        console.log('Scraped Deals:', deals);
-
-        // Save the collected deals to a JSON file named 'dealabls.json'
+        // Save the collected deals to a JSON file
         if (deals.length > 0) {
             fs.writeFileSync('dealabls.json', JSON.stringify(deals, null, 2), 'utf-8');
             console.log('Deals have been saved to dealabls.json');
         } else {
             console.log('No deals found to save.');
         }
-
     } catch (error) {
         console.error('Error scraping Dealabs:', error);
     }
