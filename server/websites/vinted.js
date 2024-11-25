@@ -1,13 +1,11 @@
 const MongoClient = require('mongodb').MongoClient;
 
-// MDp à modifier pour plus de confidentialité
 const MONGODB_URI = 'mongodb+srv://bouchtaben003:xgwfWbIurQzptItf@cluster0.7dth8.mongodb.net/?retryWrites=true&writeConcern=majority';
 const MONGODB_DB_NAME = 'Lego';
 
 async function connectToDatabase() {
     let client;
     try {
-        // Removed deprecated options
         client = await MongoClient.connect(MONGODB_URI);
         const db = client.db(MONGODB_DB_NAME);
         return { client, db };
@@ -22,7 +20,7 @@ async function updateDealsWithNumericPrice() {
     try {
         const { client: dbClient, db } = await connectToDatabase();
         client = dbClient;
-        
+
         const result = await db.collection('deals').updateMany(
             {}, 
             [
@@ -64,20 +62,24 @@ async function updateDealsWithNumericPrice() {
     }
 }
 
-async function findDealsSortedByPrice() {
+async function findDealsSorted(sortBy, sortOrder) {
     let client;
     try {
         const { client: dbClient, db } = await connectToDatabase();
         client = dbClient;
+        const sortField = {
+            [sortBy === 'price' ? 'numericPrice' : sortBy]: sortOrder === 'asc' ? 1 : -1
+        };
+
         const deals = await db.collection('deals').aggregate([
             {
-                $sort: { numericPrice: 1 } 
+                $sort: sortField
             }
         ]).toArray();
 
-        console.log('Deals Sorted By Numeric Price:', deals);
+        console.log(`Deals Sorted By ${sortBy} in ${sortOrder.toUpperCase()} order:`, deals);
     } catch (error) {
-        console.error('Error finding deals sorted by price:', error);
+        console.error(`Error finding deals sorted by ${sortBy}:`, error);
     } finally {
         if (client) {
             client.close();
@@ -85,10 +87,26 @@ async function findDealsSortedByPrice() {
     }
 }
 
+
 async function main() {
     try {
         await updateDealsWithNumericPrice();
-        await findDealsSortedByPrice();
+
+        // Prompt user for sort choice and order
+        const sortChoice = process.argv[2];
+        const sortOrder = process.argv[3];
+
+        if (!['likes', 'price'].includes(sortChoice)) {
+            console.error("Invalid sort choice! Use 'likes' or 'price'.");
+            return;
+        }
+
+        if (!['asc', 'desc'].includes(sortOrder)) {
+            console.error("Invalid sort order! Use 'asc' for ascending or 'desc' for descending.");
+            return;
+        }
+
+        await findDealsSorted(sortChoice, sortOrder);
     } catch (error) {
         console.error('Error in main function:', error);
     }

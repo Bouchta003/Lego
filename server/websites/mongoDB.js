@@ -12,7 +12,7 @@ const saveDataToFile = (data, filename) => {
         fs.writeFileSync(filename, JSON.stringify(data, null, 2));
         console.log(`Data saved to ${filename}`);
     } catch (error) {
-        console.error(`Error saving data to file: ${error.message}`);   
+        console.error(`Error saving data to file: ${error.message}`);
     }
 };
 
@@ -28,23 +28,29 @@ const getInput = (query) => {
 };
 
 (async () => {
-    // Connect to MongoDB
-    const client = await MongoClient.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-    const db = client.db(MONGODB_DB_NAME);
-    const collection = db.collection('deals');
-
-    const id = await getInput('Enter the ID to search: ');
-    const url = `https://www.vinted.fr/catalog?search_text=${id}&time=1732213311&page=1`;
-    const filename = `scraped_data_${id}.json`;
-
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
-
-    console.log(`Navigating to: ${url}`);
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    let browser;
+    let client;
 
     try {
-        await page.waitForSelector('[data-testid="grid-item"]');
+        // Connect to MongoDB
+        client = await MongoClient.connect(MONGODB_URI);
+        const db = client.db(MONGODB_DB_NAME);
+        const collection = db.collection('deals');
+
+        // Get user input
+        const id = await getInput('Enter the ID to search: ');
+        const url = `https://www.vinted.fr/catalog?search_text=${id}&time=1732213311&page=1`;
+        const filename = `scraped_data_${id}.json`;
+
+        // Launch Puppeteer
+        browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+
+        console.log(`Navigating to: ${url}`);
+        await page.goto(url, { waitUntil: 'networkidle2' });
+
+        await page.waitForSelector('[data-testid="grid-item"]', { timeout: 10000 });
+
         const products = await page.evaluate(() => {
             const items = document.querySelectorAll('[data-testid="grid-item"]');
             const data = [];
@@ -71,7 +77,8 @@ const getInput = (query) => {
                 const sizeElement = item.querySelector('[data-testid*="description-subtitle"]');
                 const size = sizeElement ? sizeElement.textContent.trim() : null;
 
-                const likeElement = item.querySelector('[data-testid*="favourite"] span');
+                // Updated selector for likes
+                const likeElement = item.querySelector('[data-testid*="favourite"] span') || item.querySelector('span.web_ui__Text__text');
                 const likes = likeElement ? parseInt(likeElement.textContent.trim()) : 0;
 
                 data.push({
@@ -82,7 +89,7 @@ const getInput = (query) => {
                     price,
                     title,
                     size,
-                    likes
+                    likes,
                 });
             });
 
@@ -93,14 +100,14 @@ const getInput = (query) => {
         saveDataToFile(products, filename);
 
         // Replace all existing data with the new scraped data
-        await collection.deleteMany({}); // Remove all existing documents
+        await collection.deleteMany({});
         const result = await collection.insertMany(products);
         console.log(`${result.insertedCount} records inserted into MongoDB`);
 
     } catch (error) {
-        console.error(`Error during scraping or database operation: ${error.message}`);
+        console.error(`Error: ${error.message}`);
     } finally {
-        await browser.close();
-        await client.close();
+        if (browser) await browser.close();
+        if (client) await client.close();
     }
 })();
