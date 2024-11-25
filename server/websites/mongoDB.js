@@ -35,7 +35,7 @@ const getInput = (query) => {
         // Connect to MongoDB
         client = await MongoClient.connect(MONGODB_URI);
         const db = client.db(MONGODB_DB_NAME);
-        const collection = db.collection('deals');
+        const collection = db.collection('Vinted');
 
         // Get user input
         const id = await getInput('Enter the ID to search: ');
@@ -49,7 +49,7 @@ const getInput = (query) => {
         console.log(`Navigating to: ${url}`);
         await page.goto(url, { waitUntil: 'networkidle2' });
 
-        await page.waitForSelector('[data-testid="grid-item"]', { timeout: 10000 });
+        await page.waitForSelector('[data-testid="grid-item"]', { timeout: 30000 });
 
         const products = await page.evaluate(() => {
             const items = document.querySelectorAll('[data-testid="grid-item"]');
@@ -77,9 +77,9 @@ const getInput = (query) => {
                 const sizeElement = item.querySelector('[data-testid*="description-subtitle"]');
                 const size = sizeElement ? sizeElement.textContent.trim() : null;
 
-                // Updated selector for likes
-                const likeElement = item.querySelector('[data-testid*="favourite"] span') || item.querySelector('span.web_ui__Text__text');
-                const likes = likeElement ? parseInt(likeElement.textContent.trim()) : 0;
+                const likeElement = item.querySelector('span.web_ui__Text__caption.web_ui__Text__left');
+                const likes = likeElement ? parseInt(likeElement.textContent.trim(), 10) : 0;
+
 
                 data.push({
                     ownerName,

@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 
 // Define the URL for Lego deals
-const URL = 'https://www.dealabs.com/search?q=Lego';
+const URL = 'https://www.dealabs.com/search?q=21061';
 
 (async () => {
     try {
@@ -63,10 +63,10 @@ const URL = 'https://www.dealabs.com/search?q=Lego';
         // Check the data in the array before writing to JSON
         console.log('Scraped Deals:', deals);
 
-        // Save the collected deals to a JSON file
+        // Save the collected deals to a JSON file named 'dealabls.json'
         if (deals.length > 0) {
-            fs.writeFileSync('deals.json', JSON.stringify(deals, null, 2), 'utf-8');
-            console.log('Deals have been saved to deals.json');
+            fs.writeFileSync('dealabls.json', JSON.stringify(deals, null, 2), 'utf-8');
+            console.log('Deals have been saved to dealabls.json');
         } else {
             console.log('No deals found to save.');
         }

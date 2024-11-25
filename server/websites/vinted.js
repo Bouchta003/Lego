@@ -21,7 +21,7 @@ async function updateDealsWithNumericPrice() {
         const { client: dbClient, db } = await connectToDatabase();
         client = dbClient;
 
-        const result = await db.collection('deals').updateMany(
+        const result = await db.collection('Vinted').updateMany(
             {}, 
             [
                 {
@@ -71,7 +71,7 @@ async function findDealsSorted(sortBy, sortOrder) {
             [sortBy === 'price' ? 'numericPrice' : sortBy]: sortOrder === 'asc' ? 1 : -1
         };
 
-        const deals = await db.collection('deals').aggregate([
+        const deals = await db.collection('Vinted').aggregate([
             {
                 $sort: sortField
             }
