@@ -18,7 +18,6 @@ async function connectToDatabase() {
     }
 }
 
-
 async function saveDealsToDatabase(deals) {
     const { client, db } = await connectToDatabase();
     const collection = db.collection(MONGODB_COLLECTION_NAME);
@@ -33,7 +32,7 @@ async function saveDealsToDatabase(deals) {
     }
 }
 
-const URL = 'https://www.dealabs.com/search?q=Lego';
+const URL = 'https://www.dealabs.com/search?q=21061';
 
 (async () => {
     try {
@@ -46,6 +45,18 @@ const URL = 'https://www.dealabs.com/search?q=Lego';
         threads.each((index, element) => {
             const title = $(element).find('.thread-title').text().trim();
             console.log(`Title for thread ${index}:`, title);
+            /*
+            Doesn't work for all elements, need help !!!
+            Pistes d'amélioration (ou si trop compliqué continuer sur le truc en euros)
+            Essayer de récup la réponse du serveur (donc le fichier HTML de la page directement) pour bien identifier les spans responsables de tout ça.
+            C'est peut-être pour ça qu'on n'a pas la valeur en question.
+            
+            Update, ce que je voyais comme étant le prix était en réalité une image.
+            Comment unlock la situation : 
+            Pour le prix aller sur le lien du produit -> chercher le span correspondant au prix (<span class="threadItemCard-price text--b thread-price">166,90€</span>)
+            -> Récupérer le prix original (sans discount) -> Récupérer ou calculer la réduction exacte.
+            -> Stocker cette valeur dans le MongoDB
+            */
             const price = $(element).text().match(/\d+€/) ? $(element).text().match(/\d+€/)[0] : null;
             const link = $(element).find('.thread-title a').attr('href');
             console.log(`Link for thread ${index}:`, link);
