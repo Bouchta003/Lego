@@ -56,6 +56,11 @@ const URL = 'https://www.dealabs.com/search?q=21061';
             Pour le prix aller sur le lien du produit -> chercher le span correspondant au prix (<span class="threadItemCard-price text--b thread-price">166,90€</span>)
             -> Récupérer le prix original (sans discount) -> Récupérer ou calculer la réduction exacte.
             -> Stocker cette valeur dans le MongoDB
+            -> Récupérer la chaleur <button title="Actuellement évalué à 43.58° par la communauté. Votez pour donner votre avis !" class="cept-vote-temp vote-temp size--all-m space--l-half-1 vote-temp--warm space--mh-1"> 43° <span class="popover-origin space--b-2"><!----></span></button>
+            soit en la récupérant du titre du span ou de la text value.
+            -> Same pour la température.
+            -> Same pour le nombre de commentaires.
+            -> Same pour la date de publication.
             */
             const price = $(element).text().match(/\d+€/) ? $(element).text().match(/\d+€/)[0] : null;
             const link = $(element).find('.thread-title a').attr('href');

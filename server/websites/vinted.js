@@ -14,7 +14,7 @@ async function connectToDatabase() {
         throw error;
     }
 }
-
+//Pas très joli fais nous un truc meilleur
 async function updateDealsWithNumericPrice() {
     let client;
     try {
