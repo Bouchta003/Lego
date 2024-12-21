@@ -37,10 +37,10 @@ const getInput = (query) => {
         const db = client.db(MONGODB_DB_NAME);
         const collection = db.collection('Vinted');
 
-        // Get user input
-        const id = await getInput('Enter the ID to search: ');
-        const url = `https://www.vinted.fr/catalog?search_text=${id}&time=1732213311&page=1`;
-        const filename = `scraped_data_${id}.json`;
+        // Get user input for the ID
+        const legoID = await getInput('Enter the ID to search: ');
+        const url = `https://www.vinted.fr/catalog?search_text=${legoID}&time=1732213311&page=1`;
+        const filename = `scraped_data_${legoID}.json`;
 
         // Launch Puppeteer
         browser = await puppeteer.launch({ headless: true });
@@ -51,7 +51,7 @@ const getInput = (query) => {
 
         await page.waitForSelector('[data-testid="grid-item"]', { timeout: 30000 });
 
-        const products = await page.evaluate(() => {
+        const products = await page.evaluate((legoID) => {
             const items = document.querySelectorAll('[data-testid="grid-item"]');
             const data = [];
 
@@ -80,8 +80,9 @@ const getInput = (query) => {
                 const likeElement = item.querySelector('span.web_ui__Text__caption.web_ui__Text__left');
                 const likes = likeElement ? parseInt(likeElement.textContent.trim(), 10) : 0;
 
-
+                // Add legoID for each product
                 data.push({
+                    legoID, // Add legoID to the product data
                     ownerName,
                     ownerProfileLink,
                     productImage,
@@ -94,13 +95,12 @@ const getInput = (query) => {
             });
 
             return data;
-        });
+        }, legoID); // Pass legoID to the page.evaluate function
 
         // Save data to a file
         saveDataToFile(products, filename);
 
-        // Replace all existing data with the new scraped data
-        await collection.deleteMany({});
+        // Insert the scraped data into MongoDB without deleting previous records
         const result = await collection.insertMany(products);
         console.log(`${result.insertedCount} records inserted into MongoDB`);
 

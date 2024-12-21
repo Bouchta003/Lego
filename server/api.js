@@ -1,48 +1,103 @@
-const cors = require('cors');
+// Import required modules
 const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const helmet = require('helmet');
+require('dotenv').config();
+
+// Initialize Express app
 const app = express();
 const PORT = 8092;
 
+// Middleware
 app.use(express.json());
-
-app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));
-
-
-module.exports = app;
-
-app.use(require('body-parser').json());
 app.use(cors());
 app.use(helmet());
 
-app.options('*', cors());
+// Connect to MongoDB with explicit database name ('Lego')
+const mongoUri = process.env.MONGO_URI || 'mongodb+srv://bouchtaben003:xgwfWbIurQzptItf@cluster0.7dth8.mongodb.net/Lego?retryWrites=true&writeConcern=majority';
+mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-app.get('/', (request, response) => {
-  response.send({'ack': true});
+// Define Vinted Schema and Model
+const vintedSchema = new mongoose.Schema({
+  title: String,
+  ownerName: String,
+  ownerProfileLink: String,
+  productImage: String,
+  productLink: String,
+  price: String,
+  size: String,
+  likes: Number,
 });
 
-app.listen(PORT);
+// Explicitly link to the 'Vinted' collection in the 'Lego' database
+const Vinted = mongoose.model('Vinted', vintedSchema, 'Vinted');
 
-console.log(`📡 Running on port ${PORT}`);
+// Routes
 
-app.get('/deals/:id', async (req, res) => {
-  const dealId = req.params.id;
-  const deal = await fetchDealById(dealId); // Replace with DB call
-  if (deal) {
-    res.status(200).json(deal);
-  } else {
-    res.status(404).json({ error: 'Deal not found' });
+// Test Route
+app.get('/', (req, res) => {
+  res.send({ ack: true });
+});
+
+// Get a specific product by ID
+app.get('/vinted/:id', async (req, res) => {
+  try {
+    const product = await Vinted.findById(req.params.id);
+    if (product) {
+      res.status(200).json(product);
+    } else {
+      res.status(404).json({ error: 'Product not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
-app.get('/deals/search', async (req, res) => {
-  const { limit = 12, price, date, filterBy } = req.query;
-  const filters = { limit, price, date, filterBy };
-  const deals = await searchDeals(filters); // Replace with DB call
-  res.status(200).json(deals);
+app.get('/vinted-lego-id/:legoID', async (req, res) => {
+  try {
+    const { legoID } = req.params; // Retrieve legoID from the URL parameter
+    const products = await Vinted.find({ legoID }); // Search for products with the given legoID
+    
+    if (products.length > 0) {
+      res.status(200).json(products);
+    } else {
+      res.status(404).json({ error: 'No products found with this LegoID' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
 });
-app.get('/sales/search', async (req, res) => {
-  const { limit = 12, legoSetId } = req.query;
-  const filters = { limit, legoSetId };
-  const sales = await searchSales(filters); // Replace with DB call
-  res.status(200).json(sales);
+// Search products with filters
+app.get('/vinted/search', async (req, res) => {
+  const { title, ownerName, maxPrice, likes, limit = 10 } = req.query;
+  const filter = {};
+
+  // Build filters dynamically based on query parameters
+  if (title) filter.title = new RegExp(title, 'i'); // Case-insensitive search
+  if (ownerName) filter.ownerName = new RegExp(ownerName, 'i');
+  if (maxPrice) filter.price = { $lte: parseFloat(maxPrice) }; // Assuming price is a number
+  if (likes) filter.likes = { $gte: parseInt(likes) };
+
+  try {
+    const products = await Vinted.find(filter).limit(Number(limit));
+    res.status(200).json({ total: products.length, results: products });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
 });
+
+// Get all deals
+app.get('/deals', async (req, res) => {
+  try {
+    console.log('Querying MongoDB for all deals...');
+    const deals = await Vinted.find(); // Fetch all documents from the 'Vinted' collection
+    console.log(deals); // Log the results to verify data retrieval
+    res.json(deals);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+// Start the server
+app.listen(PORT, () => console.log(`📡 API running on http://localhost:${PORT}`));
