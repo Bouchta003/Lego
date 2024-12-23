@@ -86,15 +86,14 @@ app.get('/vinted/search', async (req, res) => {
   }
 });
 
-// Get all deals
 app.get('/deals', async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
   try {
-    console.log('Querying MongoDB for all deals...');
-    const deals = await Vinted.find(); // Fetch all documents from the 'Vinted' collection
-    console.log(deals); // Log the results to verify data retrieval
+    const deals = await Vinted.find()
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
     res.json(deals);
   } catch (error) {
-    console.error(`Error: ${error.message}`);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
