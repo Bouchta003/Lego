@@ -88,22 +88,16 @@ app.get('/vinted/search', async (req, res) => {
 
 // Get all deals
 app.get('/deals', async (req, res) => {
-  const { page = 1, limit = 10 } = req.query; // Default: page 1, 10 items per page
   try {
-    const skip = (page - 1) * limit;
-    const deals = await Vinted.find().skip(skip).limit(Number(limit)); // Add pagination
-    const totalDeals = await Vinted.countDocuments(); // Get total count for pagination metadata
-    res.status(200).json({
-      totalDeals,
-      totalPages: Math.ceil(totalDeals / limit),
-      currentPage: page,
-      results: deals,
-    });
+    console.log('Querying MongoDB for all deals...');
+    const deals = await Vinted.find(); // Fetch all documents from the 'Vinted' collection
+    console.log(deals); // Log the results to verify data retrieval
+    res.json(deals);
   } catch (error) {
+    console.error(`Error: ${error.message}`);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
-
 
 // Start the server
 app.listen(PORT, () => console.log(`📡 API running on http://localhost:${PORT}`));
