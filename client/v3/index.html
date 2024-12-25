@@ -211,39 +211,102 @@
     </section>
     <section id="deals">
         <h2>Deals</h2>
-        <div>
-            <div class="deal" id="3ff44bc6-a293-5d7c-a3ec-156333a31ed3">
-                <span>71818</span>
-                <a href="https://www.dealabs.com/bons-plans/lego-ninjago-larene-de-combat-du-tournoi-2868003" target="_blank">LEGO Ninjago 71818 - L’Arène de Combat du Tournoi</a>
-                <span>30.64</span>
+        <div id="deals-container">
+            <div class="deal">
+                <span>Deal 1</span>
+                <a href="#" class="deal-link" data-index="0">Placeholder Link</a>
+                <span>$99.99</span>
             </div>
-            <div class="deal" id="17fa6cb1-5972-528a-bec4-156b162de065">
-                <span>76273</span>
-                <a href="https://www.dealabs.com/bons-plans/promotion-exclu-web-ex-lego-technic-peugeot-9x8-24h-le-mans-hybrid-hypercar-42156-lego-2868316" target="_blank">Sélection de Sets LEGO en Promotion</a>
-                <span>39.92</span>
+            <div class="deal">
+                <span>Deal 2</span>
+                <a href="#" class="deal-link" data-index="1">Placeholder Link</a>
+                <span>$149.99</span>
             </div>
-            <div class="deal" id="729134ef-e3a6-5f73-a4bb-8b6d552cccba">
-                <span>21345</span>
-                <a href="https://www.dealabs.com/bons-plans/lego-ideas-appareil-photo-polaroid-onestep-sx-70-21345-lego-2868572" target="_blank">Jouet Lego Ideas Appareil Photo Polaroid OneStep SX-70</a>
-                <span>51.92</span>
+            <div class="deal">
+                <span>Deal 3</span>
+                <a href="#" class="deal-link" data-index="2">Placeholder Link</a>
+                <span>$199.99</span>
             </div>
-            <div class="deal" id="5d7f045d-d5bc-59b7-a886-c7070bbbc163">
-                <span>60423</span>
-                <a href="https://www.dealabs.com/bons-plans/lego-city-tramway-et-station-du-centre-ville-2867999" target="_blank">LEGO City 60423 - Tramway et Station du Centre-ville</a>
-                <span>55.36</span>
+            <div class="deal">
+                <span>Deal 4</span>
+                <a href="#" class="deal-link" data-index="3">Placeholder Link</a>
+                <span>$249.99</span>
             </div>
-            <div class="deal" id="ae9ded2f-fa66-5414-8ca6-cbc78347aa26">
-                <span>31212</span>
-                <a href="https://www.dealabs.com/bons-plans/lego-la-voie-lactee-31212-2867978" target="_blank">Jeu de construction Lego La Voie lactée 31212</a>
-                <span>119.92</span>
-            </div>
-            <div class="deal" id="2a28ab09-b0a7-5ea4-8ed2-87aead1ec198">
-                <span>42172</span>
-                <a href="https://www.dealabs.com/bons-plans/lego-technic-mclaren-p1-42172-frontaliers-suisse-2869123" target="_blank">Lego Technic 42172 Mclaren P1</a>
-                <span>295.44</span>
+            <div class="deal">
+                <span>Deal 5</span>
+                <a href="#" class="deal-link" data-index="4">Placeholder Link</a>
+                <span>$299.99</span>
             </div>
         </div>
     </section>
-<script src="script.js"></script>
+    <script>
+        // API URL with the updated limit
+        const apiUrl = 'https://legoali.vercel.app/deals?limit=500';
+    
+        // Function to update links, prices, and Lego Sets dropdown with API data
+        async function updateDealLinks() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('Failed to fetch deals');
+    
+                const data = await response.json();
+                console.log('Fetched Data:', data); // Debugging output
+    
+                const links = document.querySelectorAll('.deal-link');
+                const prices = document.querySelectorAll('.deal span:last-child');
+                const legoSetSelect = document.getElementById('lego-set-id-select');
+    
+                // Track unique legoIDs
+                const uniqueLegoIDs = new Set();
+    
+                // Update links and prices with fetched data
+                let dataIndex = 0; // To match deals with DOM elements
+                links.forEach((link, index) => {
+                    // Loop through all data
+                    while (dataIndex < data.length) {
+                        const deal = data[dataIndex];
+                        if (deal.legoID) {
+                            // Update link and price for items with legoID
+                            if (deal.productLink) {
+                                link.href = deal.productLink;
+                                link.textContent = `View Deal: ${deal.title}`;
+                            }
+                            if (deal.price) {
+                                prices[index].textContent = deal.price;
+                            }
+                            // Add legoID to the unique set (if it exists)
+                            uniqueLegoIDs.add(deal.legoID);
+                        }
+                        dataIndex++; // Move to the next item in data
+                    }
+                });
+    
+                // Log unique legoIDs for debugging
+                console.log('Unique Lego IDs:', [...uniqueLegoIDs]);
+    
+                // Populate Lego Sets dropdown with unique legoIDs
+                legoSetSelect.innerHTML = ''; // Clear existing options
+    
+                // Check if uniqueLegoIDs contains elements
+                if (uniqueLegoIDs.size === 0) {
+                    console.warn('No Lego IDs found.');
+                }
+    
+                // Add options for all unique legoIDs
+                uniqueLegoIDs.forEach(id => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = id;
+                    legoSetSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error updating deal links, prices, and Lego Sets:', error);
+            }
+        }
+    
+        // Update deal links, prices, and Lego Sets on page load
+        updateDealLinks();
+    </script>
+    
 </body>
 </html>
