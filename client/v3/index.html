@@ -240,8 +240,9 @@
         </div>
     </section>
     <script>
-        // API URL with the updated limit
         const apiUrl = 'https://legoali.vercel.app/deals?limit=500';
+    
+        let allDeals = []; // Store all deals fetched from API
     
         // Function to update links, prices, and Lego Sets dropdown with API data
         async function updateDealLinks() {
@@ -255,29 +256,18 @@
                 const links = document.querySelectorAll('.deal-link');
                 const prices = document.querySelectorAll('.deal span:last-child');
                 const legoSetSelect = document.getElementById('lego-set-id-select');
+                const showSelect = document.getElementById('show-select');
+                const pageSelect = document.getElementById('page-select');
     
                 // Track unique legoIDs
                 const uniqueLegoIDs = new Set();
     
                 // Update links and prices with fetched data
-                let dataIndex = 0; // To match deals with DOM elements
-                links.forEach((link, index) => {
-                    // Loop through all data
-                    while (dataIndex < data.length) {
-                        const deal = data[dataIndex];
-                        if (deal.legoID) {
-                            // Update link and price for items with legoID
-                            if (deal.productLink) {
-                                link.href = deal.productLink;
-                                link.textContent = `View Deal: ${deal.title}`;
-                            }
-                            if (deal.price) {
-                                prices[index].textContent = deal.price;
-                            }
-                            // Add legoID to the unique set (if it exists)
-                            uniqueLegoIDs.add(deal.legoID);
-                        }
-                        dataIndex++; // Move to the next item in data
+                data.forEach((deal) => {
+                    if (deal.legoID) {
+                        // Add legoID to the unique set (if it exists)
+                        uniqueLegoIDs.add(deal.legoID);
+                        allDeals.push(deal); // Store the deal in allDeals
                     }
                 });
     
@@ -287,10 +277,11 @@
                 // Populate Lego Sets dropdown with unique legoIDs
                 legoSetSelect.innerHTML = ''; // Clear existing options
     
-                // Check if uniqueLegoIDs contains elements
-                if (uniqueLegoIDs.size === 0) {
-                    console.warn('No Lego IDs found.');
-                }
+                // Add default option for showing all deals
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '- Show All Deals -';
+                legoSetSelect.appendChild(defaultOption);
     
                 // Add options for all unique legoIDs
                 uniqueLegoIDs.forEach(id => {
@@ -299,6 +290,75 @@
                     option.textContent = id;
                     legoSetSelect.appendChild(option);
                 });
+    
+                // Function to fetch and display deals for the selected legoID and pagination
+                async function fetchDealsByLegoID(selectedID = '', dealsPerPage = 6, page = 1) {
+                    try {
+                        let dealsData;
+                        if (selectedID === '') {
+                            // Fetch all deals if no legoID is selected
+                            dealsData = allDeals;
+                        } else {
+                            // Fetch deals for the selected legoID
+                            const dealsResponse = await fetch(`https://legoali.vercel.app/vinted-lego-id/${selectedID}`);
+                            if (!dealsResponse.ok) throw new Error(`Failed to fetch deals for legoID: ${selectedID}`);
+                            dealsData = await dealsResponse.json();
+                        }
+    
+                        console.log('Deals for selected legoID:', selectedID, dealsData);
+    
+                        // Calculate the starting and ending indices for pagination
+                        const startIndex = (page - 1) * dealsPerPage;
+                        const endIndex = startIndex + dealsPerPage;
+                        const paginatedDeals = dealsData.slice(startIndex, endIndex);
+    
+                        // Clear existing displayed deals
+                        const dealsContainer = document.getElementById('deals-container');
+                        dealsContainer.innerHTML = ''; 
+    
+                        // Display the new deals
+                        paginatedDeals.forEach(deal => {
+                            const dealElement = document.createElement('div');
+                            dealElement.classList.add('deal');
+                            dealElement.innerHTML = `
+                                <a class="deal-link" href="${deal.productLink}" target="_blank">View Deal: ${deal.title}</a>
+                                <span class="price">${deal.price}</span>
+                            `;
+                            dealsContainer.appendChild(dealElement);
+                        });
+    
+                    } catch (error) {
+                        console.error('Error fetching deals for legoID:', error);
+                    }
+                }
+    
+                // Event listener for legoID dropdown selection change
+                legoSetSelect.addEventListener('change', (event) => {
+                    const selectedID = event.target.value;
+                    const dealsPerPage = parseInt(showSelect.value, 10);
+                    const page = parseInt(pageSelect.value, 10);
+                    fetchDealsByLegoID(selectedID, dealsPerPage, page); // Fetch and display deals for selected legoID
+                });
+    
+                // Event listener for number of deals per page change
+                showSelect.addEventListener('change', (event) => {
+                    const dealsPerPage = parseInt(event.target.value, 10);
+                    const selectedID = legoSetSelect.value;
+                    const page = parseInt(pageSelect.value, 10);
+                    fetchDealsByLegoID(selectedID, dealsPerPage, page); // Fetch and display deals for the selected number of deals per page
+                });
+    
+                // Event listener for page selection change
+                pageSelect.addEventListener('change', (event) => {
+                    const page = parseInt(event.target.value, 10);
+                    const dealsPerPage = parseInt(showSelect.value, 10);
+                    const selectedID = legoSetSelect.value;
+                    fetchDealsByLegoID(selectedID, dealsPerPage, page); // Fetch and display deals for the selected page
+                });
+    
+                // Initial fetch to display first set of deals (default to page 1, 6 deals per page)
+                fetchDealsByLegoID('', 6, 1);
+    
             } catch (error) {
                 console.error('Error updating deal links, prices, and Lego Sets:', error);
             }
