@@ -153,20 +153,6 @@
                 <option value="5">5</option>
             </select>
         </div>
-        <div id="filters">
-            <span>By best discount</span>
-            <span>By most commented</span>
-            <span>By hot deals</span>
-        </div>
-        <div id="sort">
-            <label for="sort-select">Sort:</label>
-            <select name="sort" id="sort-select">
-                <option value="price-asc">Cheaper</option>
-                <option value="price-desc">Expensive</option>
-                <option value="date-asc">Recently published</option>
-                <option value="date-desc">Anciently published</option>
-            </select>
-        </div>
     </section>
     <section id="lego">
         <h2>Lego sets</h2>
@@ -185,17 +171,15 @@
     
     <section id="deals">
         <div id="sort-by">
-            <label for="sort-by-select">Sort by:</label>
-            <select name="sort-by" id="sort-by-select">
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="likes-asc">Likes: Low to High</option>
-                <option value="likes-desc">Likes: High to Low</option>
-            </select>
-        </div>        
+            <button id="sort-price-btn">Sort by Price ASC</button>
+            <button id="sort-price-btn-desc">Sort by Price DESC</button>
+            <button id="sort-likes-btn">Sort by Likes ASC</button>
+            <button id="sort-likes-btn-desc">Sort by Likes DESC</button>
+        </div>  
         <h2>Deals</h2>
         <div id="deals-container">
             <div class="deal">
+                <span class="rank">Rank: 1</span> <!-- Rank will be inserted here -->
                 <span>Deal 1</span>
                 <a href="#" class="deal-link" data-index="0">Placeholder Link</a>
                 <span>$99.99</span>
@@ -234,45 +218,45 @@
         </section>
         <script>
             const apiUrl = 'https://legoali.vercel.app/deals?limit=1000';
-            
+        
             let allDeals = [];
             let uniqueLegoIDs = new Set();
-            
+        
             async function updateDealLinks() {
                 try {
                     const response = await fetch(apiUrl);
                     if (!response.ok) throw new Error('Failed to fetch deals');
-                    
+        
                     const data = await response.json();
                     console.log('Fetched Data:', data);
-                    
+        
                     // Reset unique legoIDs set
                     uniqueLegoIDs.clear();
                     allDeals = [];
-            
+        
                     data.forEach((deal) => {
                         if (deal.legoID) {
                             uniqueLegoIDs.add(deal.legoID);
                             allDeals.push(deal);
                         }
                     });
-            
+        
                     // Update Lego Set select dropdown
                     const legoSetSelect = document.getElementById('lego-set-id-select');
                     legoSetSelect.innerHTML = ''; 
-            
+        
                     const defaultOption = document.createElement('option');
                     defaultOption.value = '';
                     defaultOption.textContent = '- Show All Deals -';
                     legoSetSelect.appendChild(defaultOption);
-            
+        
                     uniqueLegoIDs.forEach(id => {
                         const option = document.createElement('option');
                         option.value = id;
                         option.textContent = id;
                         legoSetSelect.appendChild(option);
                     });
-            
+        
                     // Function to fetch deals and display based on selected legoID
                     async function fetchDealsByLegoID(selectedID = '', dealsPerPage = 6, page = 1) {
                         try {
@@ -284,12 +268,12 @@
                                 if (!dealsResponse.ok) throw new Error(`Failed to fetch deals for legoID: ${selectedID}`);
                                 dealsData = await dealsResponse.json();
                             }
-            
+        
                             // Paginate deals
                             const startIndex = (page - 1) * dealsPerPage;
                             const endIndex = startIndex + dealsPerPage;
                             let paginatedDeals = dealsData.slice(startIndex, endIndex);
-            
+        
                             // Sorting deals based on selected sorting criteria
                             const sortValue = document.getElementById('sort-select').value;
                             if (sortValue === 'price-asc') {
@@ -301,11 +285,14 @@
                             } else if (sortValue === 'likes-desc') {
                                 paginatedDeals = paginatedDeals.sort((a, b) => b.likes - a.likes);
                             }
-            
+        
+                            // Assign ranks to each deal
+                            assignRanks(paginatedDeals);
+        
                             // Display deals
                             const dealsContainer = document.getElementById('deals-container');
                             dealsContainer.innerHTML = '';
-            
+        
                             paginatedDeals.forEach(deal => {
                                 const dealElement = document.createElement('div');
                                 dealElement.classList.add('deal');
@@ -314,59 +301,83 @@
                                     <span class="price">${deal.price}</span>
                                     <span class="owner">Owner: ${deal.ownerName || 'Unknown'}</span>
                                     <span class="likes">❤️: ${deal.likes || 0}</span>
+                                    <span class="rank">Rank: ${deal.rank}</span>
                                     <button class="view-image-btn" onclick="viewImage('${deal.productImage}')">👁️ View Image</button>
                                 `;
                                 dealsContainer.appendChild(dealElement);
                             });
-            
+        
                             // Update indicators with total deals and unique products
                             document.getElementById('nbDeals').innerText = allDeals.length;
                             document.getElementById('nbProducts').innerText = uniqueLegoIDs.size;
-            
+        
                             // Find the deal(s) with the most likes
                             const maxLikes = Math.max(...dealsData.map(deal => deal.likes || 0));
                             const mostLikedDeals = dealsData.filter(deal => deal.likes === maxLikes);
-            
+        
                             // Display the most liked deal(s)
                             const mostLikedText = mostLikedDeals.map(deal => `${deal.title} with ${maxLikes} ❤️`).join(', ');
                             document.getElementById('most-liked-deals').innerText = `Most liked deals: ${mostLikedText}`;
-            
+        
                             // Calculate price percentiles
                             const prices = dealsData.map(deal => deal.price);
                             const sortedPrices = prices.sort((a, b) => a - b);
                             const percentile10Price = getPercentile(sortedPrices, 10);
                             const percentile50Price = getPercentile(sortedPrices, 50);
-            
+        
                             // Display price percentiles
                             document.getElementById('percentile-10').innerText = `$${percentile10Price}`;
                             document.getElementById('percentile-50').innerText = `$${percentile50Price}`;
-            
+        
                             // Update the summary text for price percentiles
                             updatePercentileSummary(percentile10Price, percentile50Price);
-                            
+        
                         } catch (error) {
                             console.error('Error fetching deals:', error);
                         }
                     }
-            
+        
+                    // Function to assign ranks based on the score
+                    function assignRanks(deals) {
+                        // Calculate scores for each deal and assign ranks
+                        deals.forEach(deal => {
+                            deal.score = calculateDealScore(deal); // Assuming score is calculated like before
+                        });
+        
+                        // Sort deals by score in descending order (best deal first)
+                        deals.sort((a, b) => b.score - a.score);
+        
+                        // Assign ranks based on sorted order
+                        deals.forEach((deal, index) => {
+                            deal.rank = index + 1; // Rank starts at 1
+                        });
+                    }
+        
+                    // Function to calculate score (same as before)
+                    function calculateDealScore(deal) {
+                        const priceScore = allDeals.filter(otherDeal => otherDeal.price < deal.price).length;
+                        const likeScore = allDeals.filter(otherDeal => otherDeal.likes > deal.likes).length;
+                        return priceScore + likeScore;
+                    }
+        
                     // Function to get percentile values
                     function getPercentile(sortedArray, percentile) {
                         const index = Math.floor((percentile / 100) * (sortedArray.length - 1));
                         return sortedArray[index];
                     }
-            
+        
                     // Function to update the percentile summary text dynamically
                     function updatePercentileSummary(percentile10Price, percentile50Price) {
                         const percentileText = document.getElementById('percentile-text');
-                        
+        
                         const interpretation = `
                             The 10th percentile price is $${percentile10Price}, indicating that 10% of the Lego sets are priced lower than this value. 
                             The 50th percentile (Median) is $${percentile50Price}, meaning half of the sets are priced below this amount. 
                         `;
-                        
+        
                         percentileText.innerHTML = interpretation;
                     }
-            
+        
                     // Event listener for legoID dropdown selection
                     legoSetSelect.addEventListener('change', function() {
                         const selectedID = legoSetSelect.value;
@@ -374,7 +385,7 @@
                         const page = parseInt(document.getElementById('page-select').value);
                         fetchDealsByLegoID(selectedID, dealsPerPage, page);
                     });
-            
+        
                     // Event listener for pagination (page select dropdown)
                     document.getElementById('page-select').addEventListener('change', function() {
                         const selectedID = legoSetSelect.value;
@@ -382,7 +393,7 @@
                         const page = parseInt(document.getElementById('page-select').value);
                         fetchDealsByLegoID(selectedID, dealsPerPage, page);
                     });
-            
+        
                     // Event listener for number of deals per page selection
                     document.getElementById('show-select').addEventListener('change', function() {
                         const selectedID = legoSetSelect.value;
@@ -390,7 +401,7 @@
                         const page = parseInt(document.getElementById('page-select').value);
                         fetchDealsByLegoID(selectedID, dealsPerPage, page);
                     });
-            
+        
                     // Event listener for sorting selection
                     document.getElementById('sort-select').addEventListener('change', function() {
                         const selectedID = legoSetSelect.value;
@@ -398,17 +409,31 @@
                         const page = parseInt(document.getElementById('page-select').value);
                         fetchDealsByLegoID(selectedID, dealsPerPage, page);
                     });
-            
+        
                     // Fetch and display initial deals (default)
                     fetchDealsByLegoID('', 6, 1);
                 } catch (error) {
                     console.error('Error fetching deals:', error);
                 }
             }
-            
-            // Call the function to update the deal links and info
             updateDealLinks();
+
+        document.getElementById('sort-price-btn').addEventListener('click', () => {
+            const dealsContainer = document.getElementById('deals-container');
+            const deals = Array.from(dealsContainer.getElementsByClassName('deal'));
+
+            // Sort the deals based on price (assumes prices are formatted as `$99.99`)
+            deals.sort((a, b) => {
+                const priceA = parseFloat(a.querySelector('.price').textContent.replace('$', ''));
+                const priceB = parseFloat(b.querySelector('.price').textContent.replace('$', ''));
+                return priceA - priceB; // For ascending order; switch to `priceB - priceA` for descending
+            });
+
+            // Re-attach sorted deals to the container
+            dealsContainer.innerHTML = '';
+            deals.forEach(deal => dealsContainer.appendChild(deal));
+        });
         </script>
         
-    </body>
+        </body>
 </html>
