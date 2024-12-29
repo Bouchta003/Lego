@@ -134,26 +134,6 @@
 </head>
 <body>
     <h1>Lego by Ali</h1>
-    <section id="options">
-        <div id="show">
-            <label for="show-select">Show:</label>
-            <select name="show" id="show-select">
-                <option value="6">6</option>
-                <option value="12">12</option>
-                <option value="24">24</option>
-            </select>
-        </div>
-        <div id="page">
-            <label for="page-select">Go to page:</label>
-            <select name="page" id="page-select">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-            </select>
-        </div>
-    </section>
     <section id="lego">
         <h2>Lego sets</h2>
         <div>
@@ -188,6 +168,24 @@
             </div>
             <!-- More deals will be inserted here dynamically -->
         </div>
+        <div id="show">
+            <label for="show-select">Show:</label>
+            <select name="show" id="show-select">
+                <option value="6">6</option>
+                <option value="12">12</option>
+                <option value="24">24</option>
+            </select>
+        </div>
+        <div id="page">
+            <label for="page-select">Go to page:</label>
+            <select name="page" id="page-select">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div>
         <section id="indicators">
             <h2>Indicators</h2>
             <div>
@@ -217,7 +215,7 @@
             
         </section>
         <script>
-            const apiUrl = 'https://legoali.vercel.app/deals?limit=1000';
+            const apiUrl = 'https://legoali.vercel.app/deals?limit=2000';
             let allDeals = [];
             let uniqueLegoIDs = new Set();
         
@@ -438,13 +436,58 @@ function updatePercentileSummary(percentile10Price, percentile50Price) {
                 const page = parseInt(document.getElementById('page-select').value);
                 fetchDealsByLegoID(selectedID, dealsPerPage, page);
             });
-        
+            function calculateProfitability(dealsData) {
+    if (!dealsData.length) return null;
+
+    const prices = dealsData.map(deal => parseFloat(deal.price) || 0).sort((a, b) => a - b);
+    const maxLikes = Math.max(...dealsData.map(deal => deal.likes || 0));
+
+    return dealsData.map(deal => {
+        const price = parseFloat(deal.price) || 0;
+        const likes = deal.likes || 0;
+
+        // Calculate percentiles
+        const pricePercentile = prices.findIndex(p => p >= price) / (prices.length - 1);
+
+        // Normalize likes
+        const normalizedLikes = maxLikes ? likes / maxLikes : 0;
+
+        // Adjust weights if needed
+        const weightPrice = 0.7; // Price weight
+        const weightLikes = 0.3; // Likes weight
+
+        const profitabilityScore = weightPrice * (1 - pricePercentile) + weightLikes * normalizedLikes;
+
+        return {
+            ...deal,
+            profitabilityScore,
+        };
+    }).sort((a, b) => b.profitabilityScore - a.profitabilityScore)[0]; // Return the top-scoring deal
+}
+
+function displayMostProfitableDeal(dealsData) {
+    const mostProfitableDeal = calculateProfitability(dealsData);
+    const profitableDealContainer = document.getElementById('profitable-deal-container');
+
+    if (mostProfitableDeal) {
+        profitableDealContainer.innerHTML = `
+            <a href="${mostProfitableDeal.productLink}" target="_blank">View Deal: ${mostProfitableDeal.title}</a>
+            <p>Price: $${mostProfitableDeal.price}</p>
+            <p>Likes: ❤️ ${mostProfitableDeal.likes}</p>
+            <p>Profitability Score: ${mostProfitableDeal.profitabilityScore.toFixed(2)}</p>
+            <p>Owner: ${mostProfitableDeal.ownerName || 'Unknown'}</p>
+        `;
+    } else {
+        profitableDealContainer.innerHTML = '<p>No profitable deal found.</p>';
+    }
+}
+
             updateDealLinks();
         </script>
         <section id="profitable-deal">
             <h2>Most Profitable Deal</h2>
             <div id="profitable-deal-container"></div>
-            <p id="profitable-deal-explanation">The most profitable deal is selected based on the lowest price among all deals, and in case of a tie, the deal with the highest number of likes is chosen.</p>
+            <p id="profitable-deal-explanation">The most profitable deal is determined based on their profitability by combining price percentiles and normalized user likes into a single score. The price percentile ranks how affordable a deal is compared to others, favoring lower-priced options, while normalized likes measure popularity relative to the most-liked deal. Using adjustable weights, the formula balances affordability and popularity to compute a profitability score for each deal. The deal with the highest score is then identified as the most profitable, ensuring an optimized balance between cost and user interest.</p>
         </section>
         
         </body>
