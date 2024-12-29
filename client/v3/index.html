@@ -322,6 +322,7 @@
 
         // Update the summary text for price percentiles
         updatePercentileSummary(percentile10Price, percentile50Price);
+        displayMostProfitableDeal(dealsData);
     } catch (error) {
         console.error('Error fetching deals:', error);
     }
@@ -361,7 +362,39 @@ function updatePercentileSummary(percentile10Price, percentile50Price) {
                     dealsContainer.appendChild(dealElement);
                 });
             }
-        
+            function displayMostProfitableDeal(dealsData) {
+    if (!dealsData.length) return;
+
+    const legoIDMap = {};
+    dealsData.forEach(deal => {
+        const { legoID, price, likes } = deal;
+        if (!legoIDMap[legoID] || parseFloat(price) < parseFloat(legoIDMap[legoID].price) || 
+            (parseFloat(price) === parseFloat(legoIDMap[legoID].price) && likes > legoIDMap[legoID].likes)) {
+            legoIDMap[legoID] = deal;
+        }
+    });
+
+    const mostProfitableDeal = Object.values(legoIDMap).reduce((bestDeal, deal) => {
+        if (!bestDeal || parseFloat(deal.price) < parseFloat(bestDeal.price) || 
+            (parseFloat(deal.price) === parseFloat(bestDeal.price) && deal.likes > bestDeal.likes)) {
+            return deal;
+        }
+        return bestDeal;
+    }, null);
+
+    const profitableDealContainer = document.getElementById('profitable-deal-container');
+    if (mostProfitableDeal) {
+        profitableDealContainer.innerHTML = `
+            <a href="${mostProfitableDeal.productLink}" target="_blank">View Deal: ${mostProfitableDeal.title}</a>
+            <p>Price: $${mostProfitableDeal.price}</p>
+            <p>Likes: ❤️ ${mostProfitableDeal.likes}</p>
+            <p>Owner: ${mostProfitableDeal.ownerName || 'Unknown'}</p>
+        `;
+    } else {
+        profitableDealContainer.innerHTML = '<p>No profitable deal found.</p>';
+    }
+}
+
             // Sorting logic
             function applySorting(sortProperty, sortOrder) {
                 const selectedID = document.getElementById('lego-set-id-select').value;
@@ -408,7 +441,12 @@ function updatePercentileSummary(percentile10Price, percentile50Price) {
         
             updateDealLinks();
         </script>
-        
+        <section id="profitable-deal">
+            <h2>Most Profitable Deal</h2>
+            <div id="profitable-deal-container"></div>
+            <p id="profitable-deal-explanation">The most profitable deal is selected based on the lowest price among all deals, and in case of a tie, the deal with the highest number of likes is chosen.</p>
+        </section>
         
         </body>
+        
 </html>
